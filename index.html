@@ -1,0 +1,69 @@
+<!doctype HTML>
+<html>
+	<head>
+		<title>jqPresent demo</title>
+		<link rel="stylesheet" type="text/css" href="stylesheets/jqPresent.css" />
+		<link rel="stylesheet" type="text/css" href="stylesheets/prettyPhoto.css" />
+		<script src="scripts/jquery-1.5.min.js"></script>
+		<script src="scripts/jquery.prettyPhoto.js"></script>
+		<script src="scripts/jquery.hotkeys.js"></script>
+		<script src="scripts/jqPresent.js"></script>
+		<script src="scripts/init.js"></script>
+	</head>
+	<body>
+		<div id="header">
+			<h1>jqPresent demo</h1>
+			<div id="relnav">
+				<a href="#prev" id="prev">Previous</a>
+				<a href="#next" id="next">Next</a>
+			</div>
+		</div>
+		<div id="slides">
+			<div id="slide1" class="slide" data-transition="slide-horizontal">
+				<h2>What?</h2>
+				<p class="point" data-transition="fade">jqPresent is a jQuery plugin that allows you to give presentations written in html.</p>
+			</div>
+			<div id="slide2" class="slide" data-transition="slide-vertical">
+				<h2>Why?</h2>
+				<p class="point" data-transition="fade">Because I could.</p>
+				<p class="point" data-transition="fade">But also:</p>
+				<ul>
+					<li class="point" data-transition="fade">I don't have ready access to a mac with keynote</li>
+					<li class="point" data-transition="fade">I don't own a copy of powerpoint</li>
+					<li class="point" data-transition="fade">Open office generally crashes a million times a day</li>
+					<li class="point" data-transition="fade">I can write HTML / CSS faster than I can mess about with a GUI</li>
+					<li class="point" data-transition="sexy">I can write my own sexy transitions</li>
+				</ul>
+			</div>
+			<div id="slide3" class="slide" data-transition="slide-horizontal">
+				<h2>How do I use it?</h2>
+				<p>Dead simple</p>
+				<ul>
+					<li class="point" data-transition="fade">Signup to <a href="http://github.com">Github</a></li>
+					<li class="point" data-transition="fade">Fork the jqPresent repo</li>
+					<li class="point" data-transition="fade">Clone your fork</li>
+					<li class="point" data-transition="fade">Hack away at this presentation</li>
+				</ul>
+			</div>
+			<div id="slide4" class="slide" data-transition="fade">
+				<h2>What can it do?</h2>
+				<ul>
+					<li>Per slide transitions</li>
+					<li>Points with per point transitions</li>
+					<li>All styled by CSS</li>
+					<li>Can embed any flash movies / iframes as normal or load them in prettyphoto etc</li>
+					<li>Optional pager and relative slide navigation</li>
+					<li>PDF stylesheet for slideshare</li>
+				</ul>
+			</div>
+			<div id="slide5" class="slide" data-transition="slide-from-top">
+				<h2>Don't say no to panda</h2>
+				<a href="http://www.youtube.com/watch?v=58u2b2A2h-c&width=1280&height=720" rel="prettyPhoto">You've been warned...</a>
+			</div>
+		</div>
+		<div id="footer">
+			<ol id="pager"></ol>
+			<p id="author">Mike Simons - <a href="mailto:mike@iammike.co.uk">mike@iammike.co.uk</a></p>
+		</div>
+	</body>
+</html>

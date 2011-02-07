@@ -1,0 +1,97 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  /*overflow: hidden;*/
+  padding: 3em 8em 0 8em;
+  font-family: 'Deja Vu Sans';
+}
+
+a:link, a:hover, a:visited {
+  text-decoration: none;
+  color: #000;
+}
+
+#header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 60px;
+  width: 100%;
+  background-color: #000;
+  color: #fff;
+  z-index: 1;
+}
+
+#header a, #footer a {
+  color: #fff;
+}
+
+#header h1 {
+  float: left;
+  margin: 10px 0 0 20px;
+}
+
+#relnav {
+  float: right;
+  margin: 20px 10px 0 0;
+}
+
+#relnav a {
+  margin-left: 20px;
+}
+
+#slides {
+  position: relative;
+  left: 0;
+  top: 60px;
+  width: 100%;
+}
+
+.slide {
+  position: absolute;
+  z-index: 0;
+  width: 100%;
+  line-height: 1.6em;
+  font-size: 2.5em;
+}
+
+.slide ul, .slide ol, .slide dl {
+  margin-left: 2.5em;
+}
+
+.slide h2, .slide h3, .slide h4, .slide h5 {
+  margin-bottom: 30px;
+}
+
+#author {
+  float: right;
+  margin: 20px 10px 0 0;
+}
+
+#pager {
+  float: left;
+  margin: 20px 0 0 20px;
+}
+
+#pager li  {
+  display: inline;
+  margin-right: 20px;
+}
+
+#footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 60px;
+  width: 100%;
+  background-color: #000;
+  color: #fff;
+  z-index: 1;
+}
+
+/*
+ vim: ts=2 sw=2 et
+*/
