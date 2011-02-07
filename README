@@ -1,0 +1,47 @@
+jqPresent - A jQuery presentation plugin
+========================================
+
+jqPresent is a jQuery plugin for giving presentations via your web browser.
+
+Requirements
+------------
+All of the requirements are bundled in this repo but if you wish to just use the plugin script (scripts/jqPresent.js) then you will need jQuery and jQuery.hotkeys.
+
+Intended usage
+--------------
+Fork this repo, edit index.html to suit your content, commit, present.
+
+Current features
+----------------
+* Per slide transition (see index.html)
+* Incremental points with per point transitions (see index.html)
+* Slides can contain anything a normal webpage can including HTML5 video, canvas tags etc (however, to keep it slick I recommend putting these in a lightbox)
+* Keyboard navigation
+* Automatically generated pager
+* Next / prev links
+* 'Visited' slides concept
+
+'Visited' slides are slides that have been entered and have had all points on them exposed. When viewing a 'visited' slide, the points are all visible and are ignored for the forward / backward actions. If you need to make a lside un-'visited' then you must reset it with CTRL+X.
+
+Keys
+----
+
+* __UP__     - Previous slide
+* __DOWN__   - Next slide 
+* __LEFT__   - Go backward (will hide previous point or flip to previous slide of no points left)
+* __RIGHT__  - Go forward (will show next point or flip to next slide if no points left)
+* __CTRL+X__ - Reset slide
+* __CTRL+SHIFT+X__ - Reset presentation
+
+Roadmap
+-------
+0.2
+
+* Per slide events (will allow you to bind JS to slide entry / exit and point show / hide)
+* Code highlighting http://code.google.com/p/syntaxhighlighter/wiki/Overview
+* Presentation mode (Hides relnav and pager)
+
+0.3
+
+* Print mode (to allow you to print to PDF and upload to slideshare et.al)
+* Overlay / non-visible point support (To point out specific aspects of a slide)
