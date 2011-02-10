@@ -5,7 +5,7 @@ jqPresent is a jQuery plugin for giving presentations via your web browser.
 
 Requirements
 ------------
-All of the requirements are bundled in this repo but if you wish to just use the plugin script (scripts/jqPresent.js) then you will need jQuery and jQuery.hotkeys.
+All of the requirements are bundled in this repo but if you wish to just use the plugin script (scripts/jqPresent.js) then you will need jQuery, jQuery UI with the scale effect and jQuery.hotkeys.
 
 Intended usage
 --------------
@@ -32,16 +32,39 @@ Keys
 * __RIGHT__  - Go forward (will show next point or flip to next slide if no points left)
 * __CTRL+X__ - Reset slide
 * __CTRL+SHIFT+X__ - Reset presentation
+* __CTRL+SHIFT+P__ - Toggle presentation mode
+
+Options
+-------
+  slideSelector: '.slide',
+  pointSelector: '.point',
+  pagerSelector: '#pager',
+  nextSelector: '#next',
+  prevSelector: '#prev',
+  presModeHideSelector: '#header, #footer',
+  wrap: false,
+  keys: 
+   prevSlide: 'up',
+   nextSlide: 'down',
+   forward: 'right',
+   backward: 'left',
+   resetSlide: 'ctrl+x',
+   resetPresentation: 'ctrl+shift+x',
+   presentationModeToggle: 'ctrl+shift+p'
 
 Roadmap
 -------
 0.2
 
-* Per slide events (will allow you to bind JS to slide entry / exit and point show / hide)
+* (DONE) Per slide events (will allow you to bind JS to slide entry / exit and point show / hide)
+* (DONE) Simple autoscale 
+* (DONE) Presentation mode (Hides relnav and pager)
 * Code highlighting http://code.google.com/p/syntaxhighlighter/wiki/Overview
-* Presentation mode (Hides relnav and pager)
+* Highlighting of current slide and pager by class
+* Fix the back / forward buttons by usig jQuery.history
 
 0.3
 
 * Print mode (to allow you to print to PDF and upload to slideshare et.al)
 * Overlay / non-visible point support (To point out specific aspects of a slide)
+* Autoscale working on resize events

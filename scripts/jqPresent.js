@@ -7,6 +7,7 @@ $.fn.present = function(options) {
     'pagerSelector': '#pager',
     'nextSelector': '#next',
     'prevSelector': '#prev',
+    'presModeHideSelector': '#header, #footer',
     'wrap': false,
     'keys': {
       'prevSlide': 'up',
@@ -14,7 +15,8 @@ $.fn.present = function(options) {
       'forward': 'right',
       'backward': 'left',
       'resetSlide': 'ctrl+x',
-      'resetPresentation': 'ctrl+shift+x'
+      'resetPresentation': 'ctrl+shift+x',
+      'presentationModeToggle': 'ctrl+shift+p'
     }
   };
 
@@ -85,7 +87,8 @@ $.fn.present = function(options) {
     oldSlide: null,
     currentSlide: null,
     transitioning: false,
-    slides: null
+    slides: null,
+    presentationMode: false
   };
 
   // misc utility functions
@@ -268,13 +271,19 @@ $.fn.present = function(options) {
       slides.changeRel(0-n);
     };
 
+    var presentationModeToggle = function() {
+      $(options.presModeHideSelector)[state.presentationMode ? 'show' : 'hide']('fade');
+      state.presentationMode = !state.presentationMode;
+    };
+
     return {
       resetPresentation: resetPresentation,
       resetSlide: resetSlide,
       forward: forward,
       backward: backward,
       nextSlide: nextSlide,
-      prevSlide: prevSlide
+      prevSlide: prevSlide,
+      presentationModeToggle: presentationModeToggle
     };
   })();
 
