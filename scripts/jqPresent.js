@@ -1,291 +1,387 @@
 (function($) {
-  $.fn.present = function(options) {
+$.fn.present = function(options) {
 
-    var defaults = {
-      'slideSelector': '.slide',
-      'pointSelector': '.point',
-      'pagerSelector': '#pager',
-      'nextSelector': '#next',
-      'prevSelector': '#prev',
-      'wrap': false,
-      'keys': {
-        'prevSlide': 'up',
-        'nextSlide': 'down',
-        'forward': 'right',
-        'backward': 'left',
-        'resetSlide': 'ctrl+x',
-        'resetPresentation': 'ctrl+shift+x'
-      }
-    };
+  var defaults = {
+    'slideSelector': '.slide',
+    'pointSelector': '.point',
+    'pagerSelector': '#pager',
+    'nextSelector': '#next',
+    'prevSelector': '#prev',
+    'wrap': false,
+    'keys': {
+      'prevSlide': 'up',
+      'nextSlide': 'down',
+      'forward': 'right',
+      'backward': 'left',
+      'resetSlide': 'ctrl+x',
+      'resetPresentation': 'ctrl+shift+x'
+    }
+  };
 
-    var slideTransitions = {
-      'slide-from-top': function(oldSlide, newSlide, completeFunc, direction) { 
-        oldSlide.slideUp(500, function () {
-          newSlide.slideDown(500, completeFunc)
-        });
-      },
-      'slide-horizontal': function(oldSlide, newSlide, completeFunc, direction) {
-        var start = direction > 0 ? $(document).width() : 0 - $(document).width();
-
-        oldSlide.animate({ 'left': 0 - start, 'opacity': 0 }, 500, function() {
-          $(this).hide().css({ 'left': 0, 'opacity': 1.0 });
-        });
-
-        newSlide.css({ 'left': start, 'opacity': 0 });
-        newSlide.show();
-        newSlide.animate({ left: 0, opacity: 1.0 }, 750, completeFunc);
-      },
-      'slide-vertical': function(oldSlide, newSlide, completeFunc, direction) {
-        var start = direction > 0 ? $(document).height() : 0 - $(document).height();
-
-        oldSlide.animate({ 'top': 0 - start, 'opacity': 0 }, 500, function() {
-          $(this).hide().css({ 'top': 0, 'opacity': 1.0 });
-        });
-
-        newSlide.css({ 'top': start, 'opacity': 0 });
-        newSlide.show();
-        newSlide.animate({ top: 0, opacity: 1.0 }, 750, completeFunc);
-      },
-      'fade': function(oldSlide, newSlide, completeFunc, direction) {
-        newSlide.css('opacity', 1.0);
-        oldSlide.fadeOut(500, function() {
-          newSlide.fadeIn(1000, completeFunc);
-        });
-      }
-    };
-
-    var pointTransitions = {
-      'fade': function(point, direction) {
-        var h = point.css('height');
-        if(direction > 0) {
-          point.css({ opacity: 0, height: 0 });
-          point.show();
-          point.animate({ opacity: 1.0, height: h }, 250);
-        } else {
-          point.animate({ opacity: 0, height: 0 }, 250, function() {
-            point.hide();
-            point.css({ opacity: 1.0, height: h });
-          });
-        }
-        direction > 0 ? point.fadeIn(500) : point.fadeOut(500);
-      }
-    };
-
-    return this.each(function() {
-
-      var $present = $(this);
-
-      // Previously visited slide
-      $present.oldSlide = null;
-
-      // Slide currently being shown
-      $present.currentSlide = null;
-
-      // true if a transition is happening
-      $present.transitioning = false;
-
-      // All slides
-      $present.slides = null;
-
-      // Plugin initialisation
-      $present.init = function(options) {
-
-        $present.options = $.extend(defaults, options);
-
-        if(options && options.keys) {
-          $present.options.keys = $.extend(defaults.keys, options.keys)
-        }
-
-        $present.slides = $present.find($present.options.slideSelector);
-        $present.slides.hide();
-
-        $present.resetPresentation($present.hash());
-
-        // Next link hook
-        $($present.options.nextSelector).click(function() {
-          $present.forward(1);
-          return false;
-        });
-
-        // Prev link hook
-        $($present.options.prevSelector).click(function() {
-          $present.backward(1);
-          return false;
-        });
-
-        // key bindings
-        $.each($present.options.keys, function(k,v) {
-          $(document).bind('keyup', v, $present[k]);
-        });
-
-        // Pager link creation + event hook
-        var pagerLinks = $present.slides.map(function(k,v) {
-          return '<li><a href="#"' + (k+1) + '">' + (k+1) + '</a></li>';
-        }).get().join("\n");
-        $($present.options.pagerSelector).html(pagerLinks).click(function(e) {
-          var t = parseInt($(e.target).text());
-          if($present.hash() != t) $present.changeSlide(t);
-          return false;
-        });
-
-      };
-
-      // Reset presentation as if just loaded
-      $present.resetPresentation = function(n) {
-        if(typeof n != 'integer') n = null;
-        $present.changeSlide(n || 1, { quietly: true });
-        $present.hidePoints();
-      };
-
-      // Reset slide as if it had just been entered
-      $present.resetSlide = function(slide) {
-        if(slide.target) slide = null;
-        if(typeof slide == 'integer') slide = $present.slides[slide - 1];
-        $present.hidePoints(slide || $present.currentSlide);
-      };
-
-      // Go forward n steps (if there are hidden points they will be shown, oterwise next slide)
-      // Note: Will only operate on either points or slides
-      // As such if there is one hidden point and forward(2) is called then the point will be shown but the slide will not change
-      $present.forward = function(n) {
-        if(typeof n != 'integer') n = 1;
-        $present.go(n);
-      };
-
-      // Go back n steps (if there are visible points they will be hidden, oterwise previous slide)
-      // Note: Will only operate on either points or slides
-      // As such if there is one visible point and backward(2) is called then the point will be hidden but the slide will not change
-      $present.backward = function(n) {
-        if(typeof n != 'integer') n = 1;
-        $present.go(0-n);
-      };
-
-      // Go forward n slides
-      $present.nextSlide = function(n) {
-        if(typeof n != 'integer') n = 1;
-        $present.goSlide(n);
-      };
-
-      // Go backwards n slides
-      $present.prevSlide = function(n) {
-        if(typeof n != 'integer') n = 1;
-        $present.goSlide(0-n);
-      };
-
-      // Find points and hide those too but only those on slides >= to current
-      $present.hidePoints = function(only) {
-        var slides = only ? only : $present.slides;
-        var hide = only ? true : false;
-        slides.each(function(k,v) {
-          if(!hide) hide = (v == $present.currentSlide[0]) ? true : false;
-          if(hide) $present.pointsOnSlide($(v)).hide();
-          $(v).data('visited', !hide);
-        });
-      };
-
-      // Perform the next /prev action
-      $present.go = function(n) {
-        var filter = n > 0 || $present.currentSlide.data('visited') ? ':hidden' : ':visible';
-        var points = $present.pointsOnSlide($present.currentSlide, filter);
-        (points.filter(filter).length == 0) ? $present.goSlide(n) : $present.goPoint(n);
-      };
-
-      // Switch slides relatively
-      $present.goSlide = function(n) {
-        var newSlide = $present.hash() + n;
-
-        if($present.options.wrap) {
-          newSlide = newSlide % ($present.slides.length + 1);
-          newSlide = n > 0 && newSlide == 0 ? 1 : (newSlide || $present.slides.length);
-        } else if(newSlide <= 0 || newSlide > $present.slides.length) {
-          return false;
-        }
-
-        $present.changeSlide(newSlide);
-      };
-
-      // Show points relatively
-      $present.goPoint = function(n) {
-        var filter = n > 0 || $present.currentSlide.data('visited') ? ':hidden' : ':visible';
-        var points = $present.pointsOnSlide($present.currentSlide, filter);
-        var toShow = n > 0 ? points.get().slice(0, n) : points.get().slice(n, points.length - n);
-
-        $(toShow).each(function(k, v) {
-          v = $(v);
-          var t = pointTransitions[v.data('transition')];
-          if(t) {
-            t(v, n);
-          } else {
-            n > 0 ? v.show() : v.hide();
-          }
-        });
-
-        if($present.pointsOnSlide($present.currentSlide, ':hidden').length == 0) {
-          $present.currentSlide.data('visited', true);
-        }
-      };
-
-      // Switch slide absolutely
-      $present.changeSlide = function(newSlideNo, opts) {
-        var direction = newSlideNo - $present.hash();
-        $present.hash(newSlideNo);
-
-        if($present.transitioning) {
-          $present.oldSlide.stop(false, true);
-          $present.currentSlide.stop(false, true);
-        }
-
-        var oldSlide = $present.currentSlide;
-        var newSlide = $present.slides.filter(':nth-child(' + newSlideNo + ')');
-
-        var t = null;
-        if(!opts || (opts && !opts['quietly'])) {
-          t = slideTransitions[newSlide.data('transition')];
-        }
-
-        if(t) {
-          var overflow = $('body').css('overflow');
-          var completeFunc = function() { 
-            $present.transitioning = false;
-            oldSlide.hide();
-            newSlide.show();
-            $('body').css('overflow', overflow);
-          };
-
-          $present.transitioning = true;
-          $('body').css('overflow', 'hidden');
-          t(oldSlide, newSlide, completeFunc, direction);
-
-        } else {
-
-          if(oldSlide) oldSlide.hide();
-          newSlide.show();
-          $present.transitioning = false;
-        }
-
-        if(oldSlide && $present.pointsOnSlide(oldSlide, ':hidden').length == 0) {
-          oldSlide.data('visited', true);
-        }
-
-        $present.oldSlide = oldSlide;
-        $present.currentSlide = newSlide;
-      };
-
-      $present.hash = function(v) {
-        if(v) window.location.hash = '#' + v;
-        return parseInt(window.location.hash.substr(1));
-      };
-
-      $present.pointsOnSlide = function(slide, filter) {
-        var p = slide.find($present.options.pointSelector)
-        if(filter) p = p.filter(filter);
-        return p;
-      };
-
-      $present.init();
-
-    });
+  // Merge options wit defaults
+  options = $.extend(defaults, options);
+  if(options && options.keys) {
+    options.keys = $.extend(defaults.keys, options.keys)
   }
+
+  // definitions for slide transitions
+  var slideTransitions = {
+    'slide-from-top': function(oldSlide, newSlide, completeFunc, direction) { 
+      oldSlide.slideUp(500, function () {
+        newSlide.slideDown(500, completeFunc);
+      });
+    },
+    'slide-horizontal': function(oldSlide, newSlide, completeFunc, direction) {
+      var start = $(document).width() * (direction / Math.abs(direction));
+
+      oldSlide.animate({ 'left': 0 - start, 'opacity': 0 }, 450, function() {
+        $(this).removeAttr('style').hide();
+      });
+
+      newSlide.css({ 'left': start, 'opacity': 0 })
+        .show()
+        .animate({ 'left': 0, 'opacity': 1.0 }, 450, completeFunc);
+    },
+    'slide-vertical': function(oldSlide, newSlide, completeFunc, direction) {
+      var start = $(document).height() * (direction / Math.abs(direction));
+
+      oldSlide.animate({ 'top': 0 - start, 'opacity': 0 }, 450, function() {
+        $(this).removeAttr('style').hide();
+      });
+
+      newSlide.css({ 'top': start, 'opacity': 0 })
+        .show()
+        .animate({ 'top': 0, 'opacity': 1.0 }, 450, completeFunc);
+    },
+    'fade': function(oldSlide, newSlide, completeFunc, direction) {
+      oldSlide.fadeOut(500, function() {
+        newSlide.fadeIn(1000, completeFunc);
+      });
+    }
+  };
+
+  // definitions for point transitions
+  var pointTransitions = {
+    'fade': function(point, direction) {
+      var h = point.css('height');
+      if(direction > 0) {
+        point.css({ opacity: 0, height: 0 })
+          .show()
+          .animate({ opacity: 1.0, height: h }, 250);
+      } else {
+        point.animate({ opacity: 0, height: 0 }, 250, function() {
+          point.hide()
+            .css({ opacity: 1.0, height: h });
+        });
+      }
+    }
+  };
+
+  var state, util, points, slides, control, scale;
+  var container = this;
+
+  // maintains presentation state
+  state = {
+    oldSlide: null,
+    currentSlide: null,
+    transitioning: false,
+    slides: null
+  };
+
+  // misc utility functions
+  util = (function() {
+    var hash = function(v) {
+      if(v) window.location.hash = '#' + v;
+      return parseInt(window.location.hash.substr(1));
+    };
+
+    return {
+      hash: hash
+    };
+  })();
+
+  // point related functions
+  points = (function() {
+
+    // find points on the given slide optionally filtered
+    var pointsOnSlide = function(slide, filter) {
+      var p = slide.find(options.pointSelector)
+      if(filter) p = p.filter(filter);
+      return p;
+    };
+
+    // Find points and hide those too but only those on slides >= to current
+    var hide = function(only) {
+      var slides = only ? only : state.slides;
+      var hide = only ? true : false;
+      slides.each(function(k,v) {
+        if(!hide) hide = (v == state.currentSlide[0]) ? true : false;
+        if(hide) pointsOnSlide($(v)).hide();
+        $(v).data('visited', !hide);
+      });
+    };
+
+    // Show points relatively
+    var changeRel = function(n) {
+      var filter = n > 0 || state.currentSlide.data('visited') ? ':hidden' : ':visible';
+      var points = pointsOnSlide(state.currentSlide, filter);
+      var toShow = n > 0 ? points.get().slice(0, n) : points.get().slice(n, points.length - n);
+
+      $(toShow).each(function(k, v) {
+        v = $(v);
+        var t = pointTransitions[v.data('transition')];
+        if(t) {
+          t(v, n);
+        } else {
+          n > 0 ? v.show() : v.hide();
+        }
+        n > 0 ? v.trigger('pointEntered') : v.trigger('pointExited');
+      });
+
+      if(pointsOnSlide(state.currentSlide, ':hidden').length == 0) {
+        state.currentSlide.data('visited', true);
+      }
+    };
+
+    return {
+      hide: hide,
+      changeRel: changeRel,
+      onSlide: pointsOnSlide
+    };
+  })();
+
+  slides = (function() {
+    // Switch slide absolutely
+    var change = function(newSlideNo, opts) {
+      var direction = newSlideNo - util.hash();
+      util.hash(newSlideNo);
+
+      if(state.transitioning) {
+        state.oldSlide.stop(false, true);
+        state.currentSlide.stop(false, true);
+      }
+
+      var oldSlide = state.currentSlide;
+      var newSlide = state.slides.filter(':nth-child(' + newSlideNo + ')');
+
+      var t = null;
+      if(!opts || (opts && !opts['quietly'])) {
+        t = slideTransitions[newSlide.data('transition')];
+      }
+
+      if(t) {
+        var overflow = $('body').css('overflow');
+        $('body').css('overflow', 'hidden');
+        state.transitioning = true;
+
+        var completeFunc = function() { 
+          state.transitioning = false;
+          oldSlide.hide();
+          oldSlide.trigger('slideExited');
+          newSlide.show();
+          newSlide.trigger('slideEntered');
+          $('body').css('overflow', overflow);
+        };
+
+        t(oldSlide, newSlide, completeFunc, direction);
+      } else {
+        if(oldSlide) oldSlide.hide();
+        newSlide.show();
+        state.transitioning = false;
+      }
+
+      if(oldSlide && points.onSlide(oldSlide, ':hidden').length == 0) {
+        oldSlide.data('visited', true);
+      }
+
+      state.oldSlide = oldSlide;
+      state.currentSlide = newSlide;
+    };
+
+    // Switch slides relatively
+    var changeRel = function(n) {
+      var newSlide = util.hash() + n;
+
+      if(options.wrap) {
+        newSlide = newSlide % (state.slides.length + 1);
+        newSlide = n > 0 && newSlide == 0 ? 1 : (newSlide || state.slides.length);
+      } else if(newSlide <= 0 || newSlide > state.slides.length) {
+        return false;
+      }
+
+      change(newSlide);
+    };
+
+    return {
+      change: change,
+      changeRel: changeRel
+    };
+  })();
+
+  control = (function() {
+    // Perform the next /prev action
+    var go = function(n) {
+      var filter = n > 0 || state.currentSlide.data('visited') ? ':hidden' : ':visible';
+      var p = points.onSlide(state.currentSlide, filter);
+      (p.filter(filter).length == 0) ? slides.changeRel(n) : points.changeRel(n);
+    };
+
+    // Reset presentation as if just entered
+    var resetPresentation = function(n) {
+      if(typeof n != 'integer') n = null;
+      slides.change(n || 1, { quietly: true });
+      points.hide();
+    };
+
+    // Reset slide as if it had just been entered
+    var resetSlide = function(slide) {
+      if(slide.target) slide = null;
+      if(typeof slide == 'integer') slide = state.slides[slide - 1];
+      points.hide(slide || state.currentSlide);
+    };
+
+    // Go forward n steps (if there are hidden points they will be shown, oterwise next slide)
+    // Note: Will only operate on either points or slides
+    // As such if there is one hidden point and forward(2) is called then the point will be shown but the slide will not change
+    var forward = function(n) {
+      if(typeof n != 'integer') n = 1;
+      go(n);
+    };
+
+    // Go back n steps (if there are visible points they will be hidden, oterwise previous slide)
+    // Note: Will only operate on either points or slides
+    // As such if there is one visible point and backward(2) is called then the point will be hidden but the slide will not change
+    var backward = function(n) {
+      if(typeof n != 'integer') n = 1;
+      go(0-n);
+    };
+
+    // Go forward n slides
+    var nextSlide = function(n) {
+      if(typeof n != 'integer') n = 1;
+      slides.changeRel(n);
+    };
+
+    // Go backwards n slides
+    var prevSlide = function(n) {
+      if(typeof n != 'integer') n = 1;
+      slides.changeRel(0-n);
+    };
+
+    return {
+      resetPresentation: resetPresentation,
+      resetSlide: resetSlide,
+      forward: forward,
+      backward: backward,
+      nextSlide: nextSlide,
+      prevSlide: prevSlide
+    };
+  })();
+
+  scale = (function() {
+    var oProp = null;
+
+    var containerDimensions = function() {
+      return {
+        w: container.width(),
+        h: container.height()
+      };
+    };
+
+    var maxSlideDimensions = function() {
+      var maxW = maxH = 0;
+      state.slides.each(function(k,s) {
+        s = $(s);
+        var isCurrent = s.is(':visible');
+        var style = null;
+
+        if(!isCurrent) {
+          style = s.attr('style');
+          s.css({ visibility: 'hidden', position: 'absolute'}).show();
+        }
+
+        maxW = maxW < s.width() ? s.width() : maxW;
+        maxH = maxH < s.height() ? s.height() : maxH;
+
+        if(!isCurrent) {
+          s.hide().attr('style', style);
+        }
+      });
+
+      return { w: maxW, h: maxH };
+    };
+
+    var auto = function() {
+      var c = containerDimensions();
+      var m = maxSlideDimensions();
+
+      var cMaxRW = c.w / m.w;
+      var cMaxRH = c.h / m.h;
+
+      var r = (cMaxRW > cMaxRH ? cMaxRH : cMaxRW);
+
+      // Some, erm, 'creative' use of the jQuery UI scale plugin
+      // We're basically saving a bunch of props the scale will mangle that we'd rather it didn't
+      // and then restoring them in the completion callback.
+      if(!oProp) {
+        oProp = {};
+        $(['position','top','bottom','left','right']).each(function(k,v) {
+          oProp[v] = container.css(v);
+        });
+      }
+
+      container.effect('scale', { percent: 100 * r }, 1000, function() {
+        $.each(oProp, function(k,v) {
+          container.css(k, v);
+          if(parseFloat(container.css('font-size')) < 1) container.css('font-size', 1);
+        });
+      });
+    };
+
+    return { auto: auto };
+  })();
+
+  // Plugin initialisation
+  state.slides = this.find(options.slideSelector);
+  state.slides.hide();
+
+  control.resetPresentation(util.hash());
+
+  // key bindings
+  $.each(options.keys, function(k,v) {
+    $(document).bind('keyup', v, control[k]);
+  });
+
+  // Next link hook
+  $(options.nextSelector).click(function() {
+    control.forward(1);
+    return false;
+  });
+
+  // Prev link hook
+  $(options.prevSelector).click(function() {
+    control.backward(1);
+    return false;
+  });
+
+  // Pager link creation + event hook
+  var pagerLinks = state.slides.map(function(k,v) {
+    return '<li><a href="#"' + (k+1) + '">' + (k+1) + '</a></li>';
+  }).get().join("\n");
+
+  $(options.pagerSelector).html(pagerLinks).click(function(e) {
+    var t = parseInt($(e.target).text());
+    if(util.hash() != t) slides.change(t);
+    return false;
+  });
+
+  // Auto scale slide content to available screen area
+  // (currently only deals with slides, not any surrounding chrome like header / footer)
+  $(document).ready(scale.auto);
+  //$(window).resize(scale.auto); // FIXME
+
+  return this;
+}
 })(jQuery);
 
 // vim:ts=2 sw=2 et

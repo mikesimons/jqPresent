@@ -3,12 +3,6 @@
   padding: 0;
 }
 
-body {
-  /*overflow: hidden;*/
-  padding: 3em 8em 0 8em;
-  font-family: 'Deja Vu Sans';
-}
-
 a:link, a:hover, a:visited {
   text-decoration: none;
   color: #000;
@@ -18,7 +12,7 @@ a:link, a:hover, a:visited {
   position: absolute;
   top: 0;
   left: 0;
-  height: 60px;
+  height: 4em;
   width: 100%;
   background-color: #000;
   color: #fff;
@@ -44,18 +38,19 @@ a:link, a:hover, a:visited {
 }
 
 #slides {
-  position: relative;
-  left: 0;
-  top: 60px;
-  width: 100%;
+  position: absolute;
+  left: 7em;
+  right: 7em;
+  top: 7em;
+  bottom: 7em;
 }
 
 .slide {
   position: absolute;
   z-index: 0;
-  width: 100%;
   line-height: 1.6em;
   font-size: 2.5em;
+  width: 100%;
 }
 
 .slide ul, .slide ol, .slide dl {
@@ -85,7 +80,7 @@ a:link, a:hover, a:visited {
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 60px;
+  height: 4em;
   width: 100%;
   background-color: #000;
   color: #fff;
