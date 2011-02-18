@@ -15,16 +15,10 @@ $.fn.present = function(options) {
       'forward': 'right',
       'backward': 'left',
       'resetSlide': 'ctrl+x',
-      'resetPresentation': 'ctrl+shift+x',
-      'presentationModeToggle': 'ctrl+shift+p'
+      'resetPresentation': 'alt+ctrl+x',
+      'presentationModeToggle': 'alt+ctrl+p'
     }
   };
-
-  // Merge options wit defaults
-  options = $.extend(defaults, options);
-  if(options && options.keys) {
-    options.keys = $.extend(defaults.keys, options.keys)
-  }
 
   // definitions for slide transitions
   var slideTransitions = {
@@ -36,24 +30,24 @@ $.fn.present = function(options) {
     'slide-horizontal': function(oldSlide, newSlide, completeFunc, direction) {
       var start = $(document).width() * (direction / Math.abs(direction));
 
-      oldSlide.animate({ 'left': 0 - start, 'opacity': 0 }, 450, function() {
+      oldSlide.animate({ 'left': 0 - start, 'opacity': 0 }, 750, function() {
         $(this).removeAttr('style').hide();
       });
 
       newSlide.css({ 'left': start, 'opacity': 0 })
         .show()
-        .animate({ 'left': 0, 'opacity': 1.0 }, 450, completeFunc);
+        .animate({ 'left': 0, 'opacity': 1.0 }, 1000, completeFunc);
     },
     'slide-vertical': function(oldSlide, newSlide, completeFunc, direction) {
       var start = $(document).height() * (direction / Math.abs(direction));
 
-      oldSlide.animate({ 'top': 0 - start, 'opacity': 0 }, 450, function() {
+      oldSlide.animate({ 'top': 0 - start, 'opacity': 0 }, 750, function() {
         $(this).removeAttr('style').hide();
       });
 
       newSlide.css({ 'top': start, 'opacity': 0 })
         .show()
-        .animate({ 'top': 0, 'opacity': 1.0 }, 450, completeFunc);
+        .animate({ 'top': 0, 'opacity': 1.0 }, 1000, completeFunc);
     },
     'fade': function(oldSlide, newSlide, completeFunc, direction) {
       oldSlide.fadeOut(500, function() {
@@ -231,7 +225,7 @@ $.fn.present = function(options) {
 
     // Reset presentation as if just entered
     var resetPresentation = function(n) {
-      if(typeof n != 'integer') n = null;
+      if(typeof n != 'number') n = null;
       slides.change(n || 1, { quietly: true });
       points.hide();
     };
@@ -239,7 +233,7 @@ $.fn.present = function(options) {
     // Reset slide as if it had just been entered
     var resetSlide = function(slide) {
       if(slide.target) slide = null;
-      if(typeof slide == 'integer') slide = state.slides[slide - 1];
+      if(typeof slide == 'number') slide = state.slides[slide - 1];
       points.hide(slide || state.currentSlide);
     };
 
@@ -247,7 +241,7 @@ $.fn.present = function(options) {
     // Note: Will only operate on either points or slides
     // As such if there is one hidden point and forward(2) is called then the point will be shown but the slide will not change
     var forward = function(n) {
-      if(typeof n != 'integer') n = 1;
+      if(typeof n != 'number') n = 1;
       go(n);
     };
 
@@ -255,19 +249,19 @@ $.fn.present = function(options) {
     // Note: Will only operate on either points or slides
     // As such if there is one visible point and backward(2) is called then the point will be hidden but the slide will not change
     var backward = function(n) {
-      if(typeof n != 'integer') n = 1;
+      if(typeof n != 'number') n = 1;
       go(0-n);
     };
 
     // Go forward n slides
     var nextSlide = function(n) {
-      if(typeof n != 'integer') n = 1;
+      if(typeof n != 'number') n = 1;
       slides.changeRel(n);
     };
 
     // Go backwards n slides
     var prevSlide = function(n) {
-      if(typeof n != 'integer') n = 1;
+      if(typeof n != 'number') n = 1;
       slides.changeRel(0-n);
     };
 
@@ -287,70 +281,13 @@ $.fn.present = function(options) {
     };
   })();
 
-  scale = (function() {
-    var oProp = null;
-
-    var containerDimensions = function() {
-      return {
-        w: container.width(),
-        h: container.height()
-      };
-    };
-
-    var maxSlideDimensions = function() {
-      var maxW = maxH = 0;
-      state.slides.each(function(k,s) {
-        s = $(s);
-        var isCurrent = s.is(':visible');
-        var style = null;
-
-        if(!isCurrent) {
-          style = s.attr('style');
-          s.css({ visibility: 'hidden', position: 'absolute'}).show();
-        }
-
-        maxW = maxW < s.width() ? s.width() : maxW;
-        maxH = maxH < s.height() ? s.height() : maxH;
-
-        if(!isCurrent) {
-          s.hide().attr('style', style);
-        }
-      });
-
-      return { w: maxW, h: maxH };
-    };
-
-    var auto = function() {
-      var c = containerDimensions();
-      var m = maxSlideDimensions();
-
-      var cMaxRW = c.w / m.w;
-      var cMaxRH = c.h / m.h;
-
-      var r = (cMaxRW > cMaxRH ? cMaxRH : cMaxRW);
-
-      // Some, erm, 'creative' use of the jQuery UI scale plugin
-      // We're basically saving a bunch of props the scale will mangle that we'd rather it didn't
-      // and then restoring them in the completion callback.
-      if(!oProp) {
-        oProp = {};
-        $(['position','top','bottom','left','right']).each(function(k,v) {
-          oProp[v] = container.css(v);
-        });
-      }
-
-      container.effect('scale', { percent: 100 * r }, 1000, function() {
-        $.each(oProp, function(k,v) {
-          container.css(k, v);
-          if(parseFloat(container.css('font-size')) < 1) container.css('font-size', 1);
-        });
-      });
-    };
-
-    return { auto: auto };
-  })();
-
   // Plugin initialisation
+  // Merge options wit defaults
+  options = $.extend(defaults, options);
+  if(options && options.keys) {
+    options.keys = $.extend(defaults.keys, options.keys)
+  }
+
   state.slides = this.find(options.slideSelector);
   state.slides.hide();
 
@@ -383,11 +320,6 @@ $.fn.present = function(options) {
     if(util.hash() != t) slides.change(t);
     return false;
   });
-
-  // Auto scale slide content to available screen area
-  // (currently only deals with slides, not any surrounding chrome like header / footer)
-  $(document).ready(scale.auto);
-  //$(window).resize(scale.auto); // FIXME
 
   return this;
 }
